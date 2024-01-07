@@ -1,0 +1,21 @@
+/* Navbar.css */
+
+/* Customize Navbar Brand (ChordEngine) */
+.navbar-brand {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: black; /* Change this color as needed */
+  }
+  
+  /* Customize Navbar Links */
+  .navbar-nav .nav-link {
+    color: black; /* Change this color as needed */
+    margin: 0 10px;
+  }
+  
+  /* Change Navbar Background to White */
+  .navbar {
+    background-color: white;
+    border-bottom: 1px solid #ccc; /* Adding a subtle border at the bottom */
+  }
+  

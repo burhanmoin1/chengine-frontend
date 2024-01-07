@@ -1,0 +1,16 @@
+/* MusicPlayer.css */
+
+.music-player {
+    margin: 20px;
+  }
+  
+  .controls {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+  }
+  
+  button {
+    margin-right: 10px;
+  }
+  
