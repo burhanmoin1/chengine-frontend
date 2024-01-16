@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import H5AudioPlayer from 'react-h5-audio-player';
-import 'react-h5-audio-player/lib/styles.css'; // Import the styles
+import 'react-h5-audio-player/lib/styles.css';
 import './FileUpload.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlay, faTrash } from '@fortawesome/free-solid-svg-icons'; // Import the trash icon
 
 const AudioPlayer = () => {
   const [filesList, setFilesList] = useState([]);
@@ -9,7 +12,6 @@ const AudioPlayer = () => {
   const [error, setError] = useState('');
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  
 
   useEffect(() => {
     fetchFiles(); // Fetch files when component mounts
@@ -47,7 +49,7 @@ const AudioPlayer = () => {
         setError(data.error_message || 'Upload failed.');
       } else {
         console.log('File uploaded successfully!');
-        // Refresh the file list after successful upload
+        // Refresh the file list after a successful upload
         fetchFiles();
       }
     } catch (error) {
@@ -65,7 +67,11 @@ const AudioPlayer = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setFilesList(data.files || []);
+
+        // Sort files by size and last modified date
+        const sortedFiles = data.files.sort((a, b) => b.size.localeCompare(a.size) || new Date(b.last_modified) - new Date(a.last_modified));
+
+        setFilesList(sortedFiles || []);
       } else {
         setError('Failed to fetch files.');
       }
@@ -74,33 +80,20 @@ const AudioPlayer = () => {
     }
   };
 
-  useEffect(() => {
-    fetchFiles();
-  }, []);
-
   const handlePlay = (file) => {
-    setSelectedFile(file);
+    setSelectedFile(file.file_name);
   };
 
-  const handleDelete = async (fileToDelete) => {
+  const handleDelete = async (key) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/upload/', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ file_name: fileToDelete }),
-      });
-
-      if (response.ok) {
-        console.log(`File ${fileToDelete} deleted successfully!`);
+      const response = await axios.delete(`http://127.0.0.1:8000/delete/${key}/`);
+      if (response.status === 200) {
+        console.log(`File with key ${key} deleted successfully!`);
+        // Refresh the file list after a successful delete
         fetchFiles();
-      } else {
-        const data = await response.json();
-        setError(data.error_message || 'Failed to delete the file.');
       }
     } catch (error) {
-      setError('Failed to delete the file. Please try again.');
+      console.error('Delete failed', error);
     }
   };
 
@@ -114,9 +107,11 @@ const AudioPlayer = () => {
       <ul>
         {filesList.map((file, index) => (
           <li key={index}>
-            {file}
-            <button onClick={() => handlePlay(file)}>Play</button>
-            <button onClick={() => handleDelete(file)}>Delete</button>
+            <FontAwesomeIcon icon={faPlay} onClick={() => handlePlay(file)} style={{ cursor: 'pointer' }} />
+            {' '}
+            {file.file_name} - Last Modified: {file.last_modified} - Size: {file.size}
+            {' '}
+            <FontAwesomeIcon icon={faTrash} onClick={() => handleDelete(file.file_name)} style={{ cursor: 'pointer' }} />
           </li>
         ))}
       </ul>
@@ -128,7 +123,6 @@ const AudioPlayer = () => {
             src={`http://127.0.0.1:8000/play_audio/${selectedFile}`}
             autoPlayAfterSrcChange
             loop={true}
-
           />
         </div>
       )}

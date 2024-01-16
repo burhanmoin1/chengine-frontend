@@ -16,7 +16,7 @@ function AddGuitarist() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios.post('http://127.0.0.1:8000/guitarists/create/', formData)
+    axios.post('http://127.0.0.1:8000/create_guitarist/', formData)
       .then(response => {
         console.log('Guitarist added successfully:', response.data);
         // Reset the form after successful submission

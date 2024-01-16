@@ -1,79 +1,92 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useParams } from 'react-router-dom'; // Import the useParams hook
+import { useParams, useNavigate } from 'react-router-dom';
 
-const EditGuitarist = () => {
+function EditGuitarist() {
+  const { guitaristId } = useParams();
+  const navigate = useNavigate();
   const [guitarist, setGuitarist] = useState({});
-  const [formData, setFormData] = useState({});
-  const { pk } = useParams(); // Use useParams here
-
-  const fetchGuitarist = async () => {
-    try {
-      const response = await axios.get(`http://127.0.0.1:8000/guitarists/${match.params.pk}/edit/`);
-      setGuitarist(response.data.data);
-      setFormData(response.data.data); // Initialize form data with guitarist details
-    } catch (error) {
-      console.error('Error fetching guitarist:', error);
-    }
-  };
+  const [updatedData, setUpdatedData] = useState({});
 
   useEffect(() => {
-    fetchGuitarist();
-  }, [match.params.pk]);
+    // Fetch data for a specific guitarist based on the ID from the route
+    axios.get(`http://127.0.0.1:8000/guitarists/${guitaristId}/`)
+      .then(response => {
+        setGuitarist(response.data);
+        setUpdatedData(response.data); // Save the data for manipulation
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      });
+  }, [guitaristId]);
 
   const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    // Update the specific field being edited
+    const { name, value } = e.target;
+    setUpdatedData(prevData => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
 
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.patch(`http://127.0.0.1:8000/guitarists/${match.params.pk}/edit/`, formData);
-      // Optionally, handle success or redirect to another page
-    } catch (error) {
-      console.error('Error editing guitarist:', error);
-    }
+  const handleUpdate = () => {
+    // Send a PUT request to update the guitarist's data
+    axios.put(`http://127.0.0.1:8000/guitarists/${guitaristId}/update/`, updatedData)
+      .then(response => {
+        console.log('Guitarist updated:', response.data);
+        // Navigate to the homepage upon successful update
+        navigate('/');
+      })
+      .catch(error => {
+        console.error('Error updating data:', error);
+      });
   };
 
+  // Render the form for editing guitarist data
   return (
     <div>
-      <h2>Edit Guitarist</h2>
-      <form onSubmit={handleFormSubmit}>
-        <label>Guitar Brand:</label>
-        <input
-          type="text"
-          name="guitar_brand"
-          value={formData.guitar_brand || ''}
-          onChange={handleInputChange}
-        />
-        <label>Guitar Model:</label>
-        <input
-          type="text"
-          name="guitar_model"
-          value={formData.guitar_model || ''}
-          onChange={handleInputChange}
-        />
-        <label>Guitar Color:</label>
-        <input
-          type="text"
-          name="guitar_color"
-          value={formData.guitar_color || ''}
-          onChange={handleInputChange}
-        />
-        <label>Number of Strings:</label>
-        <input
-          type="number"
-          name="number_of_strings"
-          value={formData.number_of_strings || ''}
-          onChange={handleInputChange}
-        />
-        <button type="submit">Save Changes</button>
+      <h1>Edit Guitarist</h1>
+      <form>
+        <label>
+          Guitar Brand:
+          <input
+            type="text"
+            name="guitar_brand"
+            value={updatedData.guitar_brand || ''}
+            onChange={handleInputChange}
+          />
+        </label>
+        <label>
+          Guitar Model:
+          <input
+            type="text"
+            name="guitar_model"
+            value={updatedData.guitar_model || ''}
+            onChange={handleInputChange}
+          />
+        </label>
+        <label>
+          Guitar Color:
+          <input
+            type="text"
+            name="guitar_color"
+            value={updatedData.guitar_color || ''}
+            onChange={handleInputChange}
+          />
+        </label>
+        <label>
+          Number of Strings:
+          <input
+            type="text"
+            name="number_of_strings"
+            value={updatedData.number_of_strings || ''}
+            onChange={handleInputChange}
+          />
+        </label>
+        <button type="button" onClick={handleUpdate}>Update</button>
       </form>
     </div>
   );
-};
+}
 
 export default EditGuitarist;
